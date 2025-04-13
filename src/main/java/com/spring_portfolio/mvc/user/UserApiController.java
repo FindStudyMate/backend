@@ -1,6 +1,7 @@
 package com.spring_portfolio.mvc.user;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -43,7 +44,27 @@ public class UserApiController {
     public ResponseEntity<List<User>> getPeople() {
         return new ResponseEntity<>(repository.findAllByOrderByNameAsc(), HttpStatus.OK);
     }
-
+    
+    @GetMapping("/onlyemail")
+    public ResponseEntity<List<String>> returnEmail() {
+        List<User> users = repository.findAll();
+        List<String> result = new ArrayList<>();
+        for (User user : users) {
+            result.add(user.getEmail());
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+    @PostMapping("/update/location") 
+    public ResponseEntity<?> updateLocation(@RequestParam("email") String email, @RequestParam("latitude") Double latitude, @RequestParam("longitude") Double longitude) {
+        User user = repository.findByEmail(email);
+        if (user == null) {
+            return new ResponseEntity<>("User Not Found", HttpStatus.BAD_REQUEST);
+        }
+        user.setLatitude(latitude);
+        user.setLongitude(longitude);
+        detailsService.save(user);
+        return new ResponseEntity<>("Sucessfully updated", HttpStatus.OK);
+    }
     @GetMapping("/get")
     public ResponseEntity<User> getPerson(@AuthenticationPrincipal UserDetails userDetails) {
         // Check if the user is not logged in
@@ -111,7 +132,7 @@ public class UserApiController {
         User user = repository.findByEmail(email);
         if (user != null) {
             detailsService.changePassword(email, password);
-            repository.save(user);
+            detailsService.save(user);
             return new ResponseEntity<>(Map.of("message", email + " is updated successfully"), HttpStatus.OK);
         }
         return new ResponseEntity<>(Map.of("error", "user not found"), HttpStatus.NOT_FOUND);
@@ -122,7 +143,7 @@ public class UserApiController {
         User user = repository.findByEmail(email);
         if (user != null) {
             detailsService.addRoleToUser(email, "ROLE_ADMIN");
-            repository.save(user);
+            detailsService.save(user);
             return new ResponseEntity<>(Map.of("message", email + " is updated successfully"), HttpStatus.OK);
         }
         return new ResponseEntity<>(Map.of("error", "user not found"), HttpStatus.NOT_FOUND);
@@ -140,22 +161,44 @@ public class UserApiController {
             return new ResponseEntity<>(Map.of("error", "Error processing the request."), HttpStatus.BAD_REQUEST);
         }
     }
-
+    @GetMapping("/studying")
+    public ResponseEntity<ArrayList<User>> showStudyingUser() {
+        List<User> users = repository.findAll();
+        ArrayList<User> result = new ArrayList<>();
+        for (User user : users) {
+            if (user.getStudyStatus().equals("STUDYING")) {
+                result.add(user);
+            }
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    } 
 
     @PostMapping("/image/post")
-    public ResponseEntity<String> saveImage(MultipartFile image, @RequestParam("username") String username) throws IOException {
-        User existingFileOptional = repository.findByEmail(username);
+    public ResponseEntity<String> saveImage(MultipartFile image, @RequestParam("email") String email) throws IOException {
+        User existingFileOptional = repository.findByEmail(email);
         if (existingFileOptional != null) {
             Base64.Encoder encoder = Base64.getEncoder();
             byte[] bytearr = image.getBytes();
             String encodedString = encoder.encodeToString(bytearr);
             existingFileOptional.setImageEncoder(encodedString);
-            repository.save(existingFileOptional);
+            detailsService.save(existingFileOptional);
             return new ResponseEntity<>("Image saved successfully", HttpStatus.CREATED);
         }
         return new ResponseEntity<>("user not found", HttpStatus.BAD_REQUEST);
     }
-
+    @PostMapping("/updateStudy")
+    public ResponseEntity<Map<String, String>> updateStudy(@RequestParam("email") String email, @RequestParam("study") String study) {
+        User user = repository.findByEmail(email);
+        if (user == null) {
+            return new ResponseEntity<>(Map.of("error", "User not found"), HttpStatus.NOT_FOUND);
+        }
+        if (study.equals("STUDYING") || study.equals("NONSTUDYING")) {
+            user.setStudyStatus(study);
+            detailsService.save(user);
+            return new ResponseEntity<>(Map.of("message", "Successfully updated"), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(Map.of("error", "Not Correct Status"), HttpStatus.BAD_REQUEST);
+    }
     @GetMapping("/image/{email}")
     public ResponseEntity<?> downloadImage(@PathVariable String email) {
         User user = repository.findByEmail(email);

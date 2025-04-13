@@ -80,6 +80,9 @@ public class User implements Comparable<User>{
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date dob;
 
+    @NotEmpty
+    private String studyStatus = "NOTSTUDYING";
+
     // To be implemented
     @ManyToMany(fetch = EAGER)
     private Collection<UserRole> roles = new ArrayList<>();
@@ -92,6 +95,10 @@ public class User implements Comparable<User>{
         }
     }
     */
+    @Column
+    private Double latitude;
+    @Column 
+    private Double longitude;
 
     @Column
 	private String ImageEncoder;
@@ -108,6 +115,8 @@ public class User implements Comparable<User>{
         this.name = name;
         this.dob = dob;
         this.ImageEncoder = null;
+        this.studyStatus = "NOTSTUDYING";
+        this.longitude = null;
     }
 
     public void addRole(UserRole role) {
@@ -144,6 +153,9 @@ public class User implements Comparable<User>{
         p1.setName("Thomas Edison");
         p1.setEmail("toby@gmail.com");
         p1.setPassword("123Toby!");
+        p1.setStudyStatus("STUDYING");
+        p1.setLatitude(38.9866435);
+        p1.setLongitude(-76.9318851);
         // adding Note to notes collection
         try {  // All data that converts formats could fail
             Date d = new SimpleDateFormat("MM-dd-yyyy").parse("01-01-1840");
@@ -156,6 +168,9 @@ public class User implements Comparable<User>{
         p2.setName("Hop");
         p2.setEmail("hop@gmail.com");
         p2.setPassword("123hop");
+        p2.setStudyStatus("STUDYING");
+        p2.setLatitude(35.3214);
+        p2.setLongitude(-73.2341123);
         // adding Note to notes collection
         try {  // All data that converts formats could fail
             Date d = new SimpleDateFormat("MM-dd-yyyy").parse("04-02-2003");
@@ -163,10 +178,22 @@ public class User implements Comparable<User>{
         } catch (Exception e) {
             // no actions as dob default is good enough
         }
-
+        User p3 = new User();
+        p3.setName("Owen");
+        p3.setEmail("olin32@gmail.com");
+        p3.setPassword("12346");
+        p3.setStudyStatus("UNSTUDYING");
+        p3.setLatitude(34.3214);
+        p3.setLongitude(-74.2341123);
+        try {  // All data that converts formats could fail
+            Date d = new SimpleDateFormat("MM-dd-yyyy").parse("04-19-2006");
+            p3.setDob(d);
+        } catch (Exception e) {
+            // no actions as dob default is good enough
+        }
         // Array definition and data initialization
-        User users[] = {p1, p2};
-        return(users);
+        User[] users = {p1, p2, p3};
+        return users;
     }
 
     public static void main(String[] args) {

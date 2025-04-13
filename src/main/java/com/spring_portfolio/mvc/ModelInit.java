@@ -10,8 +10,8 @@ import com.spring_portfolio.mvc.user.User;
 import com.spring_portfolio.mvc.user.DetailsService;
 import com.spring_portfolio.mvc.user.UserRole;
 import com.spring_portfolio.mvc.user.UserRoleJpaRepository;
-
-
+import com.spring_portfolio.mvc.message.Message;
+import com.spring_portfolio.mvc.message.MessageRepository;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -20,7 +20,7 @@ import java.util.ArrayList;
 public class ModelInit {  
     @Autowired DetailsService userService;
     @Autowired UserRoleJpaRepository roleRepo;
-
+    @Autowired MessageRepository messageRepository;
     @Bean
     CommandLineRunner run() {  // The run() method will be executed after the application starts
         return args -> {
@@ -49,11 +49,12 @@ public class ModelInit {
                     
                 }
             }
-            for (int i = 1; i <= 3 && i < userArray.length; i++) {
+            for (int i = 1; i < userArray.length; i++) {
                 userService.addRoleToUser(userArray[i].getEmail(), "ROLE_ADMIN");
             }
-
-        
+            Message[] messageArray = Message.init();
+            messageRepository.save(messageArray[0]);
+            messageRepository.save(messageArray[1]);
 
         };
     }
